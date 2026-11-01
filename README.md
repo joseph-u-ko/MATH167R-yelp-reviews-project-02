@@ -1,12 +1,25 @@
 # MATH167R-yelp-reviews-project-02
 
-This is acceptable and may be the simplest approach. Your README.md should contain:
+## One-Sentence Research Question
 
-the one-sentence research question;
-a short executive summary;
-the data sources and cleaning decisions;
-the selected restaurant categories and geographic system;
-important tables;
-static graphs and maps saved as .png, .jpg, or .svg files and embedded with Markdown;
-the main conclusions and limitations; and
-links to the code in the repository.
+
+## Short Executive Summary
+
+
+## Data Sources and Cleaning Decisions
+
+
+## Selected Restaurant Categories and Geographic System
+
+
+## Important Tables
+
+
+## Static Graphs and Maps
+<!-- Embed .png, .jpg, or .svg files here using Markdown image syntax. -->
+
+
+## Main Conclusions and Limitations
+
+
+## Links to the Code in the Repository
