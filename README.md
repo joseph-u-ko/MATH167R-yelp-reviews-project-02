@@ -5,7 +5,9 @@
 >> Define “best” using evidence such as ratings, review volume, reviewer-adjusted scores, and the reliability of the comparison. Your final question should name your selected restaurant category or theme.
 
 ## Short Executive Summary
+> In your report, explain your definition of “New Orleans restaurant.” For example, you might use the Yelp city and state fields first, then compare that result with an official geographic boundary in the spatial-join step.
 
+Because the raw files are large, save the filtered objects as compressed RDS files. The raw JSON files should remain on each student’s computer and should not be committed to GitHub. Here is the code Claude gave me to create and it worked for me! Test the code to make sure it works for you.
 
 ## Data Sources and Cleaning Decisions
 > Add a section to your report explaining how you handled the large dataset. Describe problems you encountered, such as low memory, limited disk space, a slow computer, a failed download, or a long import time, and explain how you overcame them. You should research solutions appropriate for your computer, such as using a documented sample during development, processing the review file in chunks, keeping only necessary columns, saving filtered data as compressed .rds files, and deleting or managing temporary files. A sample is acceptable for testing code, but it is not acceptable as the final result unless I have approved that choice. Your final results must use the complete set of New Orleans restaurant businesses and all available Yelp reviews for those businesses.
