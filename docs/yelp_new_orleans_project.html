@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>yelp_new_orleans_project</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="yelp_new_orleans_project_files/libs/clipboard/clipboard.min.js"></script>
+<script src="yelp_new_orleans_project_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="yelp_new_orleans_project_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="yelp_new_orleans_project_files/libs/quarto-html/popper.min.js"></script>
+<script src="yelp_new_orleans_project_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="yelp_new_orleans_project_files/libs/quarto-html/anchor.min.js"></script>
+<link href="yelp_new_orleans_project_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="yelp_new_orleans_project_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="yelp_new_orleans_project_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="yelp_new_orleans_project_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="yelp_new_orleans_project_files/libs/bootstrap/bootstrap-215b371544c282197b31c8aa00ce3677.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<style>
+  .pill_box {
+    border: 4px solid;
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: white;
+  }
+  body {
+    background-color: #CFAE29;
+    background-image: 
+      repeating-linear-gradient(45deg, rgb(78, 36, 117) 0 20px, transparent 20px 40px),
+      repeating-linear-gradient(-45deg, rgb(50, 132, 59) 0 20px, transparent 20px 40px);
+  }
+</style>
+<div class="pill_box">
+<h1 align="center">
+<strong>New Orleans Yelp Restaurants Project</strong>
+</h1>
+<h3 align="center" class="anchored">
+By: Joseph Ko
+</h3>
+</div>
+
+<section id="main-research-question" class="level1 pill_box">
+<h1><strong>Main Research Question</strong></h1>
+<blockquote class="blockquote">
+<p><strong>Where can someone find the best restaurants for New Orleans cuisine (Cajun/Creole, Po’ Boys, Gumbos, etc.) in New Orleans, and which geographic area is best for finding them?</strong></p>
+</blockquote>
+</section>
+<section id="short-executive-summary" class="level1 pill_box">
+<h1><strong>Short Executive Summary</strong></h1>
+<p>Executive summary: TBD</p>
+</section>
+<section id="data-sources-and-cleaning-decisions" class="level1 pill_box">
+<h1><strong>Data sources and cleaning decisions</strong></h1>
+<section id="problems-encountered" class="level3">
+<h3 class="anchored" data-anchor-id="problems-encountered">1. Problems Encountered</h3>
+<p>The primary obstacle encountered when working with the Yelp Academic Dataset—specifically yelp_academic_dataset_review.json—was severe memory saturation (RAM depletion). Standard JSON parsing functions in R, such as jsonlite::fromJSON(), attempt to load an entire file structure into memory at once. Because the reviews file contains millions of rows of dense text data, this immediately exceeded available RAM, causing R sessions to freeze and crash. Additionally, the dataset contained multiple metadata columns that were irrelevant to the immediate analysis goal, which drastically increased import times and disk space usage. A different challenge arose with yelp_academic_dataset_business.json. While significantly smaller than the review dataset, it contained heavily nested structural elements (such as operational hours and business attributes). Importing it without flattening would preserve complex data structures that do not map cleanly to standard data frames, complicating downstream data manipulation and flat-file exports.</p>
+</section>
+<section id="strategy-and-implementation" class="level3">
+<h3 class="anchored" data-anchor-id="strategy-and-implementation">2. Strategy and Implementation</h3>
+<p>To overcome these computing and structural constraints, a multi-tiered data pipeline was engineered to process, filter, flatten, and compress both datasets efficiently:</p>
+</section>
+<section id="phase-a-chunked-streaming-and-filtering-reviews-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="phase-a-chunked-streaming-and-filtering-reviews-dataset">Phase A: Chunked Streaming and Filtering (Reviews Dataset)</h3>
+<ul>
+<li><strong>Chunked Processing (Streaming):</strong> Instead of parsing the massive review file simultaneously, the jsonlite::stream_in() function was paired with a custom callback handler. By initializing a pagesize = 50000, the dataset was divided and read in manageable blocks.</li>
+<li><strong>Column Selection On-The-Fly:</strong> Within the callback loop, memory footprint reduction was prioritized by immediately subsetting each chunk to retain only five essential columns: review_id, business_id, stars, date, and text. Unused attributes were discarded dynamically prior to serialization, ensuring R only held a tiny fraction of the data in RAM at any given moment.</li>
+<li><strong>Intermediary Disk Storage:</strong> To safely persist the data without risking a memory crash, the processed chunks were appended to a flat file on disk (yelp_reviews_subset.csv). Quotation marks within the review strings were strictly managed using the qmethod = “double” parameter to prevent formatting failures caused by unescaped user text.</li>
+</ul>
+</section>
+<section id="phase-b-flattening-and-direct-conversion-business-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="phase-b-flattening-and-direct-conversion-business-dataset">Phase B: Flattening and Direct Conversion (Business Dataset)</h3>
+<ul>
+<li><strong>Nested Structure Flattening:</strong> Because the business dataset fits within standard RAM limits, it was processed as a single stream but passed through a flattening parameters framework (flatten = TRUE). This automatically unpacked nested lists (e.g., parking options, price ranges, and daily hours) into discrete, independent tabular columns.</li>
+<li><strong>Multi-Format Export:</strong> The flattened business data frame was written directly to disk as a structured flat file (yelp_businesses.csv) using the highly optimized vroom::vroom_write() function to ensure clean formatting across complex column attributes.</li>
+</ul>
+</section>
+<section id="phase-c-binary-serialization-and-rds-compression" class="level3">
+<h3 class="anchored" data-anchor-id="phase-c-binary-serialization-and-rds-compression">Phase C: Binary Serialization and RDS Compression</h3>
+<ul>
+<li><strong>Binary Compressing (.rds):</strong> To optimize long-term storage and eliminate future text-parsing overhead, both the filtered review dataset and the flattened business dataset were converted into R’s native binary format using saveRDS().</li>
+<li><strong>Workspace Optimization:</strong> The resulting .rds files drastically reduced file sizes on disk through built-in compression. Furthermore, this approach eliminated the need to re-parse raw JSON or CSV files in future sessions. The clean datasets can now be loaded into R almost instantaneously using readRDS(), providing a fast, stable, and highly optimized environment for downstream analysis.</li>
+</ul>
+</section>
+</section>
+<section id="selected-restaurant-categories-and-geographic-system" class="level1 pill_box">
+<h1><strong>Selected restaurant categories and geographic system</strong></h1>
+<section id="selected-restaurant-categories" class="level3">
+<h3 class="anchored" data-anchor-id="selected-restaurant-categories">Selected restaurant categories:</h3>
+<ul>
+<li>Cajun/Creole</li>
+<li>Seafood</li>
+<li>Sandwiches</li>
+</ul>
+</section>
+<section id="selected-geographic-system" class="level3">
+<h3 class="anchored" data-anchor-id="selected-geographic-system">Selected geographic system:</h3>
+<ul>
+<li>I selected <strong>census block groups</strong> as my main geographic system for the main analysis. The main reason why is because I find it easier to create a more informative map out of this geographic system.</li>
+</ul>
+</section>
+</section>
+<div class="pill_box">
+<section id="important-tables" class="level1">
+<h1><strong>Important tables</strong></h1>
+<section id="census-tract-tables" class="level3">
+<h3 class="anchored" data-anchor-id="census-tract-tables">Census Tract Tables</h3>
+<img src="figures/num_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing number of restaurants in each census tract</em>
+</p>
+<br><br> <img src="figures/avg_rating_per_ctract.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing average business rating for all businesses in each census tract</em>
+</p>
+<br><br> <img src="figures/num_assigned_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing total count of all assigned businesses in census tracts</em>
+</p>
+<br><br> <img src="figures/num_NA_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing all businesses not assigned to any census tract (or NA)</em>
+</p>
+<br><br> <a href="figures/fewest_in_ctracts.csv">Download or view the full dataset</a> <br><br>
+<p>
+<em>Csv file containing information on restaurant distributions across each census tract</em>
+</p>
+<p><br><br></p>
+</section>
+<section id="census-block-group-tables" class="level3">
+<h3 class="anchored" data-anchor-id="census-block-group-tables">Census Block Group Tables</h3>
+<img src="figures/num_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing number of restaurants in each census block group</em>
+</p>
+&lt;<br><br> <img src="figures/avg_rating_per_cbg.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing average business rating for all businesses in each census block group</em>
+</p>
+<br><br> <img src="figures/num_assigned_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing total count of all assigned businesses in census block group</em>
+</p>
+<br><br> <img src="figures/num_NA_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing all businesses not assigned to any census block group (or NA)</em>
+</p>
+<br><br> <img src="figures/fewest_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;"> <br><br>
+<p>
+<em>Table showing information on restaurant distributions across each census block group</em>
+</p>
+<p><br><br></p>
+</section>
+<section id="comparison-table" class="level3">
+<h3 class="anchored" data-anchor-id="comparison-table">Comparison Table</h3>
+<a href="figures/comparison_table.html">Open Comparison Table</a> <br><br>
+<p>
+<em>Html file containing a table that compares each geographic system used in this analysis</em>
+</p><p>
+<br><br>
+</p></section></section></div>
+
+
+<section id="static-graphs-and-maps" class="level1 pill_box">
+<h1><strong>Static graphs and maps</strong></h1>
+<img src="figures/NOLA_rests_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 400px;"> <br><br> <img src="figures/NOLA_rests_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 400px;"> <br><br>
+<p>
+<em>Note: BLKGRPCE stands for the block group’s name</em>
+</p>
+<p><br><br></p>
+</section>
+<section id="main-conclusions-limitations" class="level1 pill_box">
+<h1><strong>Main Conclusions &amp; Limitations</strong></h1>
+<p>TBD</p>
+</section>
+<section id="links-to-code-in-repository" class="level1 pill_box">
+<h1><strong>Links to code in repository</strong></h1>
+<p><a href="R/import.R">import.R</a> <br><br> <a href="R/clean.R">clean.R</a> <br><br> <a href="R/analysis.R">analysis.R</a></p>
+</section>
+
+</main></div>
+
+
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+ <!-- /content -->
+
+
+
+
+</body></html>
