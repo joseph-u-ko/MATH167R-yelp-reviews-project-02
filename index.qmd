@@ -80,39 +80,39 @@ reason why is because I find it easier to create a more informative map out of t
 <div class="pill_box">
 # __Important tables__
 ### Census Tract Tables
-<img src="figures/num_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/num_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing number of restaurants in each census tract*</p><br></br>
-<img src="figures/avg_rating_per_ctract.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/avg_rating_per_ctract.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing average business rating for all businesses in each census tract*</p><br></br>
-<img src="figures/num_assigned_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/num_assigned_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing total count of all assigned businesses in census tracts*</p><br></br>
-<img src="figures/num_NA_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/num_NA_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing all businesses not assigned to any census tract (or NA)*</p><br></br>
-[Download or view the full dataset](figures/fewest_in_ctracts.csv)
+[Download or view the full dataset](https://github.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/blob/main/figures/fewest_in_ctracts.csv)
 <br></br><p>*Csv file containing information on restaurant distributions across each census tract*</p><br></br>
 
 ### Census Block Group Tables
-<img src="figures/num_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/num_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing number of restaurants in each census block group*</p><<br></br>
-<img src="figures/avg_rating_per_cbg.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/avg_rating_per_cbg.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing average business rating for all businesses in each census block group*</p><br></br>
-<img src="figures/num_assigned_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/num_assigned_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing total count of all assigned businesses in census block group*</p><br></br>
-<img src="figures/num_NA_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/num_NA_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing all businesses not assigned to any census block group (or NA)*</p><br></br>
-<img src="figures/fewest_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/fewest_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 300px;">
 <br></br><p>*Table showing information on restaurant distributions across each census block group*</p><br></br>
 
 ### Comparison Table
-[Open Comparison Table](figures/comparison_table.html)
+[Open Comparison Table](https://github.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/blob/main/figures/comparison_table.html)
 <br></br><p>*Html file containing a table that compares each geographic system used in this analysis*<p><br></br>
 </div>
 
 <div class="pill_box">
 # __Static graphs and maps__
-<img src="figures/NOLA_rests_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 400px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/NOLA_rests_in_ctracts.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 400px;">
 <br></br>
-<img src="figures/NOLA_rests_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 400px;">
+<img src="https://raw.githubusercontent.com/joseph-u-ko/MATH167R-yelp-reviews-project-02/refs/heads/main/figures/NOLA_rests_in_cbgs.png" alt="YOUR_ALT_TEXT" style="border: 2px solid #ccc; border-radius: 4px; width: 400px;">
 <br></br><p>*Note: BLKGRPCE stands for the block group's name*</p><br></br>
 </div>
 
