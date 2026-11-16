@@ -29,7 +29,11 @@ format: html
 # __Main Research Question__
 > __Where can someone find the best restaurants for New Orleans cuisine (Cajun/Creole, Po' Boys, Gumbos, etc.) 
 in New Orleans, and which geographic area is best for finding them?__
+<br>
+<br>
 
+# __The Answer__
+> The top 10 restaurants are 
 </div>
 
 <div class="pill_box">
@@ -39,7 +43,7 @@ TBD
 </div>
 
 <div class="pill_box">
-# __Data sources and cleaning decisions__
+# __Data Management and Cleaning Decisions__
 ### 1. Problems Encountered
 
 The primary obstacle encountered when working with the Yelp Academic Dataset—specifically yelp_academic_dataset_review.json—was severe memory saturation (RAM depletion). Standard JSON parsing functions in R, such as jsonlite::fromJSON(), attempt to load an entire file structure into memory at once. Because the reviews file contains millions of rows of dense text data, this immediately exceeded available RAM, causing R sessions to freeze and crash. Additionally, the dataset contained multiple metadata columns that were irrelevant to the immediate analysis goal, which drastically increased import times and disk space usage.

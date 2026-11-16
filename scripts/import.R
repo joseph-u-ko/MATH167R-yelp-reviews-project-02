@@ -44,15 +44,15 @@ business <- business_raw |>
     latitude, longitude, stars, review_count, categories
   )
 
-output_csv <- "yelp_reviews_subset.csv"
+output_rds <- "data/raw/yelp_reviews_subset.rds"
 
 # Clear the output file if it already exists from a previous run
-if (file.exists(output_csv)) file.remove(output_csv)
+if (file.exists(output_rds)) file.remove(output_rds)
 
 # 1. Define the callback function to handle each chunk
 process_chunk <- function(chunk_df) {
   # Select only your 5 required columns
-  subset_df <- chunk_df[, c("review_id", "business_id", "stars", "date", "text")]
+  subset_df <- chunk_df[, c("review_id", "user_id", "business_id", "stars", "date", "text")]
   
   # Append this chunk to your clean CSV file
   write.table(subset_df, 
@@ -85,7 +85,7 @@ file.remove("yelp_reviews_subset.csv")
 reviews <- readRDS("data/raw/yelp_reviews_subset.rds")
 
 sample_head <- reviews |>
-  select(review_id, business_id, stars, date, text) |>
+  select(review_id, user_id, business_id, stars, date, text) |>
   head(10)
 
 View(sample_head)

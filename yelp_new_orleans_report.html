@@ -1,0 +1,215 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Where to Find Orleans Cuisine in New Orleans</title><style>
+:root{--ink:#17202a;--muted:#5d6d7e;--accent:#007c91;--wash:#f4f7f8}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}.page{max-width:1120px;margin:auto;background:#fff;padding:56px 72px 80px;box-shadow:0 0 25px #dfe6e8}.hero{border-left:7px solid var(--accent);padding:12px 0 12px 24px;margin-bottom:36px}.eyebrow{letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-size:.82rem;font-weight:700}.hero h1{font-size:2.7rem;line-height:1.1;margin:8px 0 12px}.subtitle{font-size:1.18rem;color:var(--muted)}h2{margin-top:42px;border-bottom:2px solid #dfe8eb;padding-bottom:8px}h3{color:var(--accent)}.lede{font-size:1.08rem}.callout{background:#eaf5f6;border-radius:10px;padding:18px 22px;margin:20px 0}.finding{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}.metric{background:#f8fafb;border-top:4px solid var(--accent);padding:16px;border-radius:7px}.metric b{font-size:1.8rem;display:block;color:var(--accent)}.metric span{color:var(--muted);font-size:.9rem}.figure{margin:26px 0;text-align:center}.figure img{max-width:100%;height:auto;border:1px solid #dde5e7;border-radius:7px}.caption{font-size:.9rem;color:var(--muted);margin-top:7px}.data-table{border-collapse:collapse;width:100%;font-size:.88rem;margin:18px 0 24px}.data-table th{background:#eaf5f6;color:#16424a;text-align:left}.data-table td,.data-table th{padding:8px 10px;border-bottom:1px solid #e0e7e9}.data-table tr:nth-child(even){background:#fafcfc}.small{font-size:.9rem;color:var(--muted)}.code{background:#f5f7f8;padding:2px 5px;border-radius:4px;font-family:monospace}.footer{margin-top:55px;padding-top:20px;border-top:1px solid #dfe8eb;color:var(--muted);font-size:.88rem}a{color:#006e80}@media(max-width:800px){.page{padding:32px 22px}.finding{grid-template-columns:1fr}.hero h1{font-size:2rem}}
+</style></head><body><main class="page">
+<header class="hero"><div class="eyebrow">Yelp New Orleans Restaurant Analysis</div><h1>Where can someone find the best taste of Orleans cuisine?</h1><div class="subtitle">A reproducible analysis of Cajun/Creole, Sandwiches, and Seafood restaurants using the complete Yelp Open Dataset, Census boundaries, and reviewer-adjusted scores.</div></header>
+<h2>Research question</h2><p class="lede"><strong>Which New Orleans geographic area offers the strongest combination of ratings, review volume, and reviewer-adjusted scores for restaurants associated with Cajun/Creole, Sandwiches, or Seafood?</strong></p><p>The project treats “best” as more than the highest star average. It compares business ratings, all-reviewer review scores, review volume, and a normalized score that accounts for each reviewer’s typical scoring level.</p>
+<h2>Executive summary</h2><div class="callout"><strong>Bottom line:</strong> Among census tracts with at least five qualifying businesses, tract <strong>22071007700</strong> is the strongest area by mean reviewer-adjusted score (0.077), with 10 qualifying businesses and 9,562 listed reviews. Because the geographic unit is small, this is a screening result rather than a definitive neighborhood ranking.</div><div class="finding"><div class="metric"><b>217</b><span>qualifying restaurants</span></div><div class="metric"><b>86,343</b><span>joined Yelp reviews</span></div><div class="metric"><b>67</b><span>census tracts represented</span></div></div><p>The theme is broad enough to satisfy the geographic coverage requirement while remaining culturally coherent. The 217 businesses span 67 tracts and 86 block groups, creating meaningful spatial variation.</p>
+<h2>Data and workflow</h2><p>The source is Yelp’s official educational <a href="https://business.yelp.com/data/resources/open-dataset/">Yelp Open Dataset</a>. The page reports 6,990,280 reviews and 150,346 businesses. The downloaded JSON archive was processed locally; raw files are not included here.</p><ol><li>Imported the business JSON and retained the columns used by <span class="code">import.R</span>.</li><li>Filtered <span class="code">state == "LA"</span>, <span class="code">city == "New Orleans"</span>, and category text containing “Restaurants.”</li><li>Selected businesses matching at least one of Cajun/Creole, Sandwiches, or Seafood.</li><li>Streamed the complete review JSON and retained reviews for selected <span class="code">business_id</span> values.</li><li>Spatially joined coordinates to 2024 Census TIGER/Line tracts and block groups.</li><li>Computed raw summaries and reviewer-adjusted scores using the supplied analysis logic.</li></ol><p class="small">The supplied R files define the intended workflow. This report was executed with an equivalent Python implementation because the available runtime did not include R; the supplied R sources remain linked below.</p>
+<h2>Category selection</h2><p>These categories form a practical “taste of New Orleans” theme rather than simply being the three most frequent labels. Inclusion required at least one selected category, which avoids excluding restaurants that specialize in only one part of the theme.</p><table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Selected category</th>
+      <th>Businesses in category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Cajun/Creole</td>
+      <td>401</td>
+    </tr>
+    <tr>
+      <td>Sandwiches</td>
+      <td>354</td>
+    </tr>
+    <tr>
+      <td>Seafood</td>
+      <td>331</td>
+    </tr>
+  </tbody>
+</table><div class="figure"><img src="figures/category_counts.png"><div class="caption">Figure 1. Category frequencies among New Orleans businesses labeled as restaurants.</div></div>
+<h2>Geographic comparison</h2><p>Census tracts are the primary comparison system because they provide neighborhood-scale units while preserving spatial detail. The selected businesses occur in 67 tracts, exceeding the requirement of at least seven geographic areas. Five businesses did not receive a tract or block-group assignment; these were retained and reported rather than silently removed.</p><table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>tract_geoid</th>
+      <th>restaurants</th>
+      <th>avg_business_rating</th>
+      <th>total_yelp_reviews</th>
+      <th>avg_raw_review_score</th>
+      <th>avg_normalized_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>22071007700</td>
+      <td>10</td>
+      <td>4.050</td>
+      <td>9562</td>
+      <td>4.065</td>
+      <td>0.077</td>
+    </tr>
+    <tr>
+      <td>22071002600</td>
+      <td>5</td>
+      <td>3.900</td>
+      <td>1985</td>
+      <td>3.976</td>
+      <td>0.009</td>
+    </tr>
+    <tr>
+      <td>22071012900</td>
+      <td>6</td>
+      <td>4.250</td>
+      <td>3787</td>
+      <td>4.225</td>
+      <td>0.001</td>
+    </tr>
+    <tr>
+      <td>22071003702</td>
+      <td>5</td>
+      <td>3.400</td>
+      <td>393</td>
+      <td>3.334</td>
+      <td>-0.022</td>
+    </tr>
+    <tr>
+      <td>22071013400</td>
+      <td>34</td>
+      <td>3.588</td>
+      <td>18392</td>
+      <td>3.576</td>
+      <td>-0.170</td>
+    </tr>
+    <tr>
+      <td>22071013501</td>
+      <td>14</td>
+      <td>3.607</td>
+      <td>8287</td>
+      <td>3.640</td>
+      <td>-0.194</td>
+    </tr>
+    <tr>
+      <td>22071003800</td>
+      <td>6</td>
+      <td>3.500</td>
+      <td>4589</td>
+      <td>3.594</td>
+      <td>-0.228</td>
+    </tr>
+    <tr>
+      <td>22071013502</td>
+      <td>35</td>
+      <td>3.600</td>
+      <td>23230</td>
+      <td>3.604</td>
+      <td>-0.244</td>
+    </tr>
+  </tbody>
+</table><div class="figure"><img src="figures/tract_adjusted_scores.png"><div class="caption">Figure 2. Tracts with at least five qualifying businesses, ordered by reviewer-adjusted score.</div></div><div class="figure"><img src="figures/restaurant_map.png"><div class="caption">Figure 3. Selected restaurant locations inside the New Orleans Census place boundary. Point color represents Yelp business stars.</div></div>
+<h2>Reviewer-adjusted ratings</h2><p>Reviewers who contributed at least five reviews to the selected category set were eligible (954 reviewers). For each reviewer, the normalized score is the review’s star value minus that reviewer’s mean score across the selected restaurants. Positive values indicate a review was more favorable than that reviewer’s personal baseline.</p><p>This adjustment is a sensitivity analysis, not a replacement for raw ratings. It helps show how reviewer severity may influence comparisons.</p><div class="figure"><img src="figures/raw_vs_adjusted.png"><div class="caption">Figure 4. Raw review averages compared with reviewer-adjusted scores. Point size reflects review volume.</div></div><table class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>business_name</th>
+      <th>stars</th>
+      <th>review_count</th>
+      <th>number_of_reviews_all_reviewers</th>
+      <th>average_stars_all_reviewers</th>
+      <th>number_of_reviews_eligible_reviewers</th>
+      <th>average_normalized_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Dona's Pizza</td>
+      <td>4.5</td>
+      <td>6</td>
+      <td>6</td>
+      <td>4.500</td>
+      <td>1.0</td>
+      <td>1.300</td>
+    </tr>
+    <tr>
+      <td>Toula's Creole Kitchen</td>
+      <td>4.0</td>
+      <td>87</td>
+      <td>89</td>
+      <td>3.831</td>
+      <td>1.0</td>
+      <td>0.818</td>
+    </tr>
+    <tr>
+      <td>Petite Clouet Cafe</td>
+      <td>4.5</td>
+      <td>18</td>
+      <td>18</td>
+      <td>4.556</td>
+      <td>4.0</td>
+      <td>0.790</td>
+    </tr>
+    <tr>
+      <td>The Bower</td>
+      <td>4.5</td>
+      <td>41</td>
+      <td>42</td>
+      <td>4.286</td>
+      <td>9.0</td>
+      <td>0.616</td>
+    </tr>
+    <tr>
+      <td>Mermaids</td>
+      <td>3.0</td>
+      <td>16</td>
+      <td>17</td>
+      <td>3.176</td>
+      <td>3.0</td>
+      <td>0.593</td>
+    </tr>
+    <tr>
+      <td>Chap's Chicken</td>
+      <td>4.5</td>
+      <td>53</td>
+      <td>55</td>
+      <td>4.509</td>
+      <td>9.0</td>
+      <td>0.587</td>
+    </tr>
+    <tr>
+      <td>Restaurant Rebirth</td>
+      <td>4.5</td>
+      <td>521</td>
+      <td>534</td>
+      <td>4.640</td>
+      <td>35.0</td>
+      <td>0.562</td>
+    </tr>
+    <tr>
+      <td>Doily</td>
+      <td>5.0</td>
+      <td>9</td>
+      <td>10</td>
+      <td>4.800</td>
+      <td>3.0</td>
+      <td>0.548</td>
+    </tr>
+    <tr>
+      <td>Mr John's Steakhouse</td>
+      <td>4.0</td>
+      <td>294</td>
+      <td>300</td>
+      <td>4.140</td>
+      <td>61.0</td>
+      <td>0.519</td>
+    </tr>
+    <tr>
+      <td>Rimon at Tulane Hillel</td>
+      <td>4.0</td>
+      <td>5</td>
+      <td>5</td>
+      <td>3.800</td>
+      <td>1.0</td>
+      <td>0.500</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Conclusions and limitations</h2><p>Tract 22071007700 is the strongest candidate under the five-business minimum-size rule, but its lead should be interpreted alongside business counts and review volume. Restaurant stars are Yelp’s business ratings, while review averages are calculated from joined review records; small review counts can produce unstable means.</p><ul><li>Yelp city labels and Census polygons are different geographic systems, so edge cases and unmatched coordinates are possible.</li><li>Category labels may omit restaurants that serve similar food without using one of the selected labels.</li><li>Reviewer normalization uses activity within this selected category set, not a reviewer’s entire Yelp history.</li><li>Yelp data reflects who chooses to review and is not a random sample of diners.</li><li>The results identify promising areas for further investigation; they do not establish causal reasons for rating differences.</li></ul>
+<h2>Source code and reproducibility</h2><ul><li><a href="../report_pipeline.py">Equivalent execution pipeline</a></li><li><a href="../upload/import.R">Supplied import code</a></li><li><a href="../upload/clean.R">Supplied cleaning code</a></li><li><a href="../upload/analysis.R">Supplied analysis code</a></li><li><a href="https://business.yelp.com/data/resources/open-dataset/">Official Yelp Open Dataset</a></li><li><a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html">U.S. Census cartographic boundaries</a></li></ul>
+<footer class="footer">Rendered November 2026. Raw JSON files are intentionally excluded from the report bundle.</footer></main></body></html>
